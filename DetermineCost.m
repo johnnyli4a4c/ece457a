@@ -25,16 +25,16 @@ CostMatrix = Map;
 for Cam = 1:CamCount
 	x = Soln(Cam, 1);
 	y = Soln(Cam, 2);
-	width = Camera(Cam, 1);
-	length = Camera(Cam, 2);
+	width = Cameras(Cam, 1);
+	length = Cameras(Cam, 2);
 
 	% for each position on map that the camera covers
-	for i = x:(x + width)
-		for j = y:(y + length)
+	for i = x:(x + width - 1)
+		for j = y:(y + length - 1)
 
 			% if i and j are within bounds of coverage matrix
 			% mark point i,j in coverage matrix as covered by setting cost to zero
-			if i > 0 && i <= maxWidth && j > 0 && j <= maxLength
+			if i > 0 && i <= MaxWidth && j > 0 && j <= MaxLength
 				CostMatrix(i, j) = 0;
 			end
 		end
