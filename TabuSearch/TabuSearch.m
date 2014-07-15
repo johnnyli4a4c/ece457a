@@ -1,5 +1,5 @@
 function  [BestSoln BestSolnCost] = TabuCamSearch( ...
-                CostMap, BoundaryMap, CamList, TabuLength, NumIterations, ...      
+                SectionCosts, BoundaryMap, CamList, TabuLength, NumIterations, ...      
                 GenInitialSolnFn, GetBestNeighbourSolnFn, CostCalcFn)
 
 % This function implements the tabu search algorithm.
@@ -20,7 +20,7 @@ function  [BestSoln BestSolnCost] = TabuCamSearch( ...
 %   BestSolnCost: The best solution cost
 
 % Generate the initial solution given the problem data
-[Soln SolnCost TabuList] = feval(GenInitialSolnFn, CostCalcFn, CostMap, BoundaryMap, CamList);
+[Soln SolnCost TabuList] = feval(GenInitialSolnFn, CostCalcFn, SectionCosts, BoundaryMap, CamList);
 
 % Set the best solution to the initial solution
 BestSoln = Soln;
@@ -29,8 +29,8 @@ BestSolnCost = SolnCost;
 for nIt = 1 : NumIterations
     % Get the best solution in the neighbourhood of the current solution
     % avoiding Tabu moves
-    [Soln SolnCost TabuList] = feval(GetBestNeighbourSolnFn, CostCalcFn, CostMap, ...
-                                CostMap, BoundaryMap, CamList, Soln, TabuList, TabuLength);
+    [Soln SolnCost TabuList] = feval(GetBestNeighbourSolnFn, CostCalcFn, SectionCosts, ...
+                                BoundaryMap, CamList, Soln, TabuList, TabuLength);
             
     % Update the best solution
     if SolnCost < BestSolnCost

@@ -1,11 +1,10 @@
-function [SolnCost] = DetermineCost( Cameras, CostMap, BoundaryMap, Soln )
+function [SolnCost] = DetermineCost( Cameras, SectionCosts, BoundaryMap, Soln )
 
 % This function determines cost of solution for placing cameras on a map
 %
 % Inputs:
 % 	Cameras: 2 by n matrix containing coverage of each camera.
-%	CostMap: Cost map of grid to be monitored by cameras. Each value of position (i,j) in the matrix is cost 
-%		of not covering that position. Ex. A value of 2 has higher cost/higher priority that value of 1
+%	SectionCosts: array containing the costs associated with each section. Value at position 1 should indicate cost of section 1
 %	BoundaryMap: Map marking the sections of the map. Value of position (i,j) indicates the section of the map
 %		ex. 1 indicates point is part of section 1, 2 indicates point is part of section 2, etc.
 %	Soln: 3 by n matrix containing position and direction of cameras. Direction is set as 1 for horizontal, 2 for vertical.
@@ -24,14 +23,14 @@ if Properties ~= 3
 	error('Soln needs to be 3 by n matrix');
 end
 
-CostMatrix = CostMap;
+SectionMatrix = BoundaryMap;
 
-[MaxLength, MaxWidth] = size(CostMatrix);
-[LengthBound, WidthBound] = size(BoundaryMap);
+[CostRows, CostColumns] = size(SectionCosts);
+[MaxLength, MaxWidth] = size(BoundaryMap);
 
-% check that boundary map and cost map have same dimensions
-if MaxLength ~= LengthBound || MaxWidth ~= WidthBound
-	error('Boundary Map does not have same dimensions as cost map');
+% check that Section Cost map is an array
+if CostRows ~= 1
+	error('Section Costs should be a horizontal array');
 end
 
 for Cam = 1:CamCount
@@ -52,9 +51,9 @@ for Cam = 1:CamCount
 		for j = y:(y + length - 1)
 
 			% if i and j are within bounds of coverage matrix
-			% mark point i,j in coverage matrix as covered by setting cost to zero
+			% mark point i,j in coverage matrix as covered by setting section to zero
 			if i > 0 && i <= MaxWidth && j > 0 && j <= MaxLength
-				CostMatrix(i, j) = 0;
+				SectionMatrix(i, j) = 0;
 			end
 
 			% if next iteration will break a boundary between sections, exit out of loop
@@ -70,9 +69,11 @@ for Cam = 1:CamCount
 end
 
 SolnCost = 0;
-%Sum up total cost
+%Sum up total cost by iterating through section matrix
 for i = 1:MaxLength
 	for j = 1:MaxWidth
-		SolnCost = SolnCost + CostMatrix(i, j);
+		if(SectionMatrix(i,j) ~= 0)
+			SolnCost = SolnCost + SectionCosts(SectionMatrix(i, j));
+		end
 	end
 end
