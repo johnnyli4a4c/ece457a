@@ -24,7 +24,7 @@ if Properties ~= 3
 	error('Soln needs to be 3 by n matrix');
 end
 
-CostMatrix = Map;
+CostMatrix = CostMap;
 
 [MaxLength, MaxWidth] = size(CostMatrix);
 [LengthBound, WidthBound] = size(BoundaryMap);
@@ -40,8 +40,8 @@ for Cam = 1:CamCount
 	width = Cameras(Cam, 1);
 	length = Cameras(Cam, 2);
 
-	%if direction is vertical swap width and length
-	if Cameras(Cam, 3) == 1
+	%if direction in solution is set to vertical swap width and length
+	if Soln(Cam, 3) == 1
 		temp = width;
 		width = length;
 		length = temp;
@@ -63,7 +63,7 @@ for Cam = 1:CamCount
 			end
 		end
 
-		% if i+1 <= MaxWidth && BoundaryMap(i,y) ~= BoundaryMap(i+1, y)
+		if i+1 <= MaxWidth && BoundaryMap(i,y) ~= BoundaryMap(i+1, y)
 			break;
 		end
 	end
