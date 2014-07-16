@@ -23,9 +23,9 @@ CamSoln = zeros(CamCount, 3);
 
 % For each camera, generate a random position
 for i = 1:CamCount
-	x = random(1..MaxWidth);
-	y = random(1..MaxLength);
-	direction = random(1,2);
+	x = randi(MaxWidth,1);
+	y = randi(MaxLength,1);
+	direction = randi(2,1);
 	CamSoln(i,:) = [x, y, direction];
 end
 
