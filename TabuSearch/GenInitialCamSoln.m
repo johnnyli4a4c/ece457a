@@ -7,6 +7,7 @@ function [CamSoln CamSolnCost TabuList] = GenInitialCamSoln(CostCalcFn, SectionC
 % 	BoundaryMap: Map containing which sections each point belongs to. The element (i, j) represents
 %		the section that position on the grid belongs to
 %	CamList: List of cameras to be placed
+%	CostCalcFn: A handle to a function that determines the cost of the soln
 %
 % Outputs:
 %   CamSoln:  A spare matrix that represents the spanning tree obtained. 
