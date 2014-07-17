@@ -62,11 +62,8 @@ for Cam = 1:CamCount
 	for i = y:yEnd
 		for j = x:xEnd
 
-			% if i and j are within bounds of coverage matrix
 			% mark point i,j in coverage matrix as covered by setting section to zero
-			if i > 0 && i <= MaxLength && j > 0 && j <= MaxWidth
-				SectionMatrix(i, j) = 0;
-			end
+			SectionMatrix(i, j) = 0;
 
 			% if next iteration will break a boundary between sections, exit out of loop
 			if j+1 <= MaxWidth && BoundaryMap(i,j) ~= BoundaryMap(i,j+1)
@@ -74,6 +71,7 @@ for Cam = 1:CamCount
 			end
 		end
 
+		% if next iteration will break a boundary between sections, exit out of loop
 		if i+1 <= MaxLength && BoundaryMap(i,x) ~= BoundaryMap(i+1, x)
 			break;
 		end
