@@ -74,7 +74,7 @@ for Cam = 1:CamCount
 			end
 		end
 
-		if i+1 <= MaxLength && BoundaryMap(i,y) ~= BoundaryMap(i+1, y)
+		if i+1 <= MaxLength && BoundaryMap(i,x) ~= BoundaryMap(i+1, x)
 			break;
 		end
 	end
