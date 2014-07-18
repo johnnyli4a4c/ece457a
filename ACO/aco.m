@@ -50,7 +50,7 @@ function [soln] = aco(boundaryMap, sensitivityMap, cameras, numAnts, iterations,
             globalSoln{ant_k,2} = cost;
         end
         
-        if isequal(globalSoln{:,1})
+        if isequal(globalSoln{:,2})
             break;
         end
         
@@ -73,7 +73,7 @@ function [soln] = aco(boundaryMap, sensitivityMap, cameras, numAnts, iterations,
             end
             pheromoneMap{cam_k} = [0 pheromoneMap{cam_k}];
             pheromoneMap{cam_k} = diff(pheromoneMap{cam_k});
-            pheromoneMap{cam_k} = pheromoneMap{cam_k} * 0.8; % decay factor
+            pheromoneMap{cam_k} = pheromoneMap{cam_k} * 0.9; % decay factor
             pheromoneMap{cam_k}(indices) = pheromoneMap{cam_k}(indices) * improveFactor;
             pheromoneMap{cam_k} = cumsum(pheromoneMap{cam_k}/sum(pheromoneMap{cam_k}));
         end
