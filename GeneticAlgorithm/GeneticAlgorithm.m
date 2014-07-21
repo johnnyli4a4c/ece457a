@@ -6,8 +6,13 @@ global solution newsolution;
 global population newpopulation;
 global fitness newfitness;
 global yMax xMax nCameras;
+global func clist cmap bmap;
 
 %   Problem Specific Parameters
+func = CalcCostFn;
+cmap = SectionCosts;
+clist = CamList;
+bmap = BoundaryMap;
 [yMax , xMax] = size(BoundaryMap);
 nCameras = size(CamList, 1);
 
@@ -94,9 +99,9 @@ end
 
 function evolve(j)
     % Evolves the new generation
-    global newsolution newpopulation newfitness fitness population solution func;
+    global newsolution newpopulation newfitness fitness population solution func clist bmap cmap;
     newsolution(j)=bin2CameraList(newpopulation(j,:));
-    newfitness(j)=func(newsolution(j));
+    newfitness(j)=feval(func, clist, cmap, bmap, newsolution(j));
     if newfitness(j) < fitness(j), % Min question
        population(j,:) = newpopulation(j,:);
        solution(j) = newsolution(j);
