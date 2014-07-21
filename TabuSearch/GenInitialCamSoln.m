@@ -30,7 +30,7 @@ for i = 1:CamCount
 	CamSoln(i,:) = [x, y, direction];
 end
 
-% Calculate the cost of the spanning tree
+% Calculate the cost of the soln
 [CamSolnCost] = feval(CalcCostFn, CamList, SectionCosts, BoundaryMap, CamSoln);
 
 
