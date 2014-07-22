@@ -9,74 +9,77 @@
 % 
 % A second matrix ranging from 65-128 to represent the vertical orientation
 
-function [soln] = aco(boundaryMap, sensitivityMap, cameras, numAnts, iterations, determineCostFn)
+function [soln, cost, iteration] = aco(boundaryMap, sensitivityMap, cameras, numAnts, iterations, determineCostFn)
 %     check boundaryMap = sensitivityMap
 
+    pheromone_initial = 1;
+    pheromone_decay = 0.9;
+    pheromone_deposit_scaling = 1;
+    influence_pheromone = 1;
+    influence_cost = 2;
+
     mapHeight = size(boundaryMap,1);
-    mapWidth = size(boundaryMap,2);
-    
-    numElements = numel(boundaryMap);
-    
+    mapWidth = size(boundaryMap,2);    
+    numElements = numel(boundaryMap);    
     numCameras = size(cameras,1);
     
-    sens = repmat(sensitivityMap(boundaryMap(1:end)),1,2);
-    pheromoneMap = {};
-    for i = 1:numCameras
-        pheromoneMap = [pheromoneMap; cumsum(sens/sum(sens))];
-    end
+    sensitivityVector = repmat(sensitivityMap(boundaryMap(1:end)),1,2);    
+    pheromoneMap = cell(numCameras,1);
+    pheromoneMap(:) = {ones(1,numElements*2)*pheromone_initial};
+    probabilityDistribution = cell(numCameras,1);
+    probabilityDistribution(:) = {cumsum(((pheromoneMap{1}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{1}.^influence_pheromone).*(sensitivityVector.^influence_cost)))};
 
     for i = 1:iterations % or converged
-        globalSoln = cell([numAnts,2]);
+        globalSoln = cell(numAnts,2);
         for ant_k = 1:numAnts
-            localSoln = [];
+            localSoln = zeros(numCameras,3);
             for cam_k = 1:numCameras
                 r = rand;
                 
-                idx = find(pheromoneMap{cam_k} > r, 1);
+                idx = find(probabilityDistribution{cam_k} > r, 1);
                 
                 dir = 1;
                 if (idx > numElements)
                     dir = 2;
                     idx = idx - numElements;
                 end
-%                 dir = (idx > numElements) + 1;
-%                 idx = mod(idx, numElements);
                 [y,x] = ind2sub([mapHeight,mapWidth],idx);
 
-                localSoln = [localSoln; [x,y,dir]];
+                localSoln(cam_k,:) = [x,y,dir];
             end
             cost = feval(determineCostFn, cameras, sensitivityMap, boundaryMap, localSoln);
             globalSoln{ant_k,1} = localSoln;
             globalSoln{ant_k,2} = cost;
         end
         
-        if isequal(globalSoln{:,2})
-            break;
-        end
-        
         globalSolnMat = cell2mat(globalSoln(:,2));
         
 %         find value of best and worst
-        best = min(globalSolnMat);
+        [best,index] = min(globalSolnMat);
         worst = max(globalSolnMat);
+        
+        soln = globalSoln{index,1};
+        cost = globalSoln(index,2);
+        iteration = i;
+        
+        if (best == worst)
+            break;
+        end
         
 %         find all indexes of best solutions
         bestIdx = find(globalSolnMat == best);
 
-        improveFactor = worst / best;
+        improveFactor = pheromone_deposit_scaling * worst / best;
         
         for cam_k = 1:numCameras
+            pheromoneMap{cam_k} = pheromoneMap{cam_k}.*pheromone_decay;
             indices = [];
             for best_k = bestIdx'
                 camPos = globalSoln{best_k,1}(cam_k,:);
                 indices = [indices; sub2ind(size(boundaryMap),camPos(1,2),camPos(1,1))+(camPos(1,3)-1)*64];
             end
-            pheromoneMap{cam_k} = [0 pheromoneMap{cam_k}];
-            pheromoneMap{cam_k} = diff(pheromoneMap{cam_k});
-            pheromoneMap{cam_k} = pheromoneMap{cam_k} * 0.9; % decay factor
-            pheromoneMap{cam_k}(indices) = pheromoneMap{cam_k}(indices) * improveFactor;
-            pheromoneMap{cam_k} = cumsum(pheromoneMap{cam_k}/sum(pheromoneMap{cam_k}));
+            pheromoneMap{cam_k}(indices) = pheromoneMap{cam_k}(indices).*improveFactor;
+            probabilityDistribution{cam_k} = cumsum(((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost)));
         end
     end
-    soln = globalSoln;
 end
