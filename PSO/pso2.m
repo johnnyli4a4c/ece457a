@@ -29,7 +29,7 @@ function [ Soln, Value ] = pso2( iterations )
    %initializing all the particles
    %each particle contains 5 cameras
    for i = 1:numParticles;
-        particle(i) = struct('xpos', randi([1,8]), 'ypos', randi([1,8]), 'xvel', 0, 'yvel', 0, 'dir', randi([1,2]), 'pbx', 0, 'pby', 0);
+        particle(i) = struct('xpos', randi([1,8]), 'ypos', randi([1,8]), 'xvel', 0, 'yvel', 0, 'dir', randi([1,2]), 'pbx', 0, 'pby', 0, 'obj', 88);
         particleValue(i) = 88;
    end
    for i = 1:numParticles;
@@ -54,8 +54,14 @@ function [ Soln, Value ] = pso2( iterations )
        %loop through particles to determin the objective function
        for j = 1:numParticles
            particleValue(j) = findSoln(Cameras, SectionCosts, BoundaryMap, particle(j));
+           if particleValue(j) < particle(j).obj(1)
+                for k = 1:5 
+                    particle(j).pbx(k) = particle(j).xpos(k);
+                    particle(j).pby(k) = particle(j).ypos(k);
+                end
+           end
        end
-       
+
        index = find( particleValue == min(particleValue(:)));
        index = min(index);
        
