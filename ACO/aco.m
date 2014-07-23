@@ -9,14 +9,9 @@
 % 
 % A second matrix ranging from 65-128 to represent the vertical orientation
 
-function [soln, cost, iteration] = aco(boundaryMap, sensitivityMap, cameras, numAnts, iterations, determineCostFn)
+function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, cameras, determineCostFn, numAnts, iterations, ...
+    pheromone_initial, pheromone_decay, pheromone_deposit_scaling, influence_pheromone, influence_cost, convergence)
 %     check boundaryMap = sensitivityMap
-
-    pheromone_initial = 1;
-    pheromone_decay = 0.9;
-    pheromone_deposit_scaling = 1;
-    influence_pheromone = 1;
-    influence_cost = 2;
 
     mapHeight = size(boundaryMap,1);
     mapWidth = size(boundaryMap,2);    
@@ -28,8 +23,11 @@ function [soln, cost, iteration] = aco(boundaryMap, sensitivityMap, cameras, num
     pheromoneMap(:) = {ones(1,numElements*2)*pheromone_initial};
     probabilityDistribution = cell(numCameras,1);
     probabilityDistribution(:) = {cumsum(((pheromoneMap{1}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{1}.^influence_pheromone).*(sensitivityVector.^influence_cost)))};
+    
+    timing = zeros(1,iterations);
 
     for i = 1:iterations % or converged
+        tic
         globalSoln = cell(numAnts,2);
         for ant_k = 1:numAnts
             localSoln = zeros(numCameras,3);
@@ -63,7 +61,10 @@ function [soln, cost, iteration] = aco(boundaryMap, sensitivityMap, cameras, num
         iteration = i;
         
         if (best == worst)
-            break;
+            convergence = convergence - 1;
+            if (convergence == 0)
+                break;
+            end
         end
         
 %         find all indexes of best solutions
@@ -81,5 +82,6 @@ function [soln, cost, iteration] = aco(boundaryMap, sensitivityMap, cameras, num
             pheromoneMap{cam_k}(indices) = pheromoneMap{cam_k}(indices).*improveFactor;
             probabilityDistribution{cam_k} = cumsum(((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost)));
         end
+        timing(i) = toc;
     end
 end
