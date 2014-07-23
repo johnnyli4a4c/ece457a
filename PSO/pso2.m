@@ -24,7 +24,7 @@ function [ Soln, Value ] = pso2( iterations )
    c2 = 1.4944;
    inertia = 0;
    
-   numParticles = 1000;
+   numParticles = 625; %4 particles with 5 cameras each in different orientation
 
    %initializing all the particles
    %each particle contains 5 cameras
@@ -53,25 +53,42 @@ function [ Soln, Value ] = pso2( iterations )
    for i = 1:iterations
        %loop through particles to determin the objective function
        for j = 1:numParticles
-           particleValue(j) = findSoln(Cameras, SectionCosts, BoundaryMap, particle(j));
+           val1 = findSoln(Cameras, SectionCosts, BoundaryMap, particle(j));
+           val2 = findOtherDirSoln(Cameras, SectionCosts, BoundaryMap, particle(j));
+           
+           if(val2 < val1)
+               for a = 1:5
+                   if (particle(j).dir(a) == 1)
+                       particle(j).dir(a) = 2;
+                   elseif ( particle(j).dir(a) == 2)
+                       particle(j).dir(a) = 1;
+                    end
+               end
+           end
+           
+           particleValue(j) = min(val1, val2);
+           
            if particleValue(j) < particle(j).obj(1)
                 for k = 1:5 
                     particle(j).pbx(k) = particle(j).xpos(k);
                     particle(j).pby(k) = particle(j).ypos(k);
                 end
+                %determine the global best
+                   index = find( particleValue == min(particleValue(:)));
+                   index = min(index);
+
+                   bestVal = min( particleValue(:));
+                   bestVal = min(bestVal)
+
+                   for d = 1:5
+                       gbest(d).x = particle(index).xpos(d);
+                       gbest(d).y = particle(index).ypos(d);
+                       gbest(d).dir = particle(index).dir(d);
+                   end
            end
        end
 
-       index = find( particleValue == min(particleValue(:)));
-       index = min(index);
        
-       bestVal = min( particleValue(:));
-       
-       for j = 1:5
-           gbest(j).x = particle(index).xpos(j);
-           gbest(j).y = particle(index).ypos(j);
-           gbest(j).dir = particle(index).dir(j);
-       end
 
        disp(returnSoln( particle(index)));
        disp(bestVal)
@@ -82,6 +99,7 @@ function [ Soln, Value ] = pso2( iterations )
                 particle(i).yvel(j) =  particle(i).yvel(j) * inertia + c1 * rand * (particle(i).pby(j) - particle(i).ypos(j)) + c2 * rand * (gbest(j).y - particle(i).ypos(j));
                 particle(i).xpos(j) = round(particle(i).xvel(j)) + particle(i).xpos(j);
                 particle(i).ypos(j) = round(particle(i).yvel(j)) + particle(i).ypos(j);
+                particle(i).dir(j) = gbest(j).dir;
 
                if(particle(i).xpos(j) <= 0)
                    particle(i).xpos(j) = 1;
@@ -101,6 +119,22 @@ function [ Soln, Value ] = pso2( iterations )
 end
 
 function [ value ] = findSoln( Cameras, SectionCosts, BoundaryMap, Particle )
+    soln = [Particle.xpos(1) Particle.ypos(1) Particle.dir(1);
+            Particle.xpos(2) Particle.ypos(2) Particle.dir(2);
+            Particle.xpos(3) Particle.ypos(3) Particle.dir(3);
+            Particle.xpos(4) Particle.ypos(4) Particle.dir(4);
+            Particle.xpos(5) Particle.ypos(5) Particle.dir(5)];
+    value = DetermineCost(Cameras, SectionCosts, BoundaryMap, soln);
+end
+
+function [ value ] = findOtherDirSoln( Cameras, SectionCosts, BoundaryMap, Particle )
+    for a = 1:5
+        if (Particle.dir(a) == 1)
+            Particle.dir(a) = 2;
+        elseif ( Particle.dir(a) == 2)
+            Particle.dir(a) = 1;
+        end
+    end
     soln = [Particle.xpos(1) Particle.ypos(1) Particle.dir(1);
             Particle.xpos(2) Particle.ypos(2) Particle.dir(2);
             Particle.xpos(3) Particle.ypos(3) Particle.dir(3);
