@@ -70,7 +70,7 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
 %         find all indexes of best solutions
         bestIdx = find(globalSolnMat == best);
 
-        improveFactor = pheromone_deposit_scaling * worst / best;
+        improveFactor = pheromone_deposit_scaling * length(bestIdx) * worst / best;
         
         for cam_k = 1:numCameras
             pheromoneMap{cam_k} = pheromoneMap{cam_k}.*pheromone_decay;
