@@ -20,17 +20,25 @@ nCameras = size(CamList, 1);
 
 populationSize =    nCameras;   % This is a correlation to problem complexity
 maxGenerations =    MaxGens
-chanceCrossover =   0.95;
-chanceMutation =    0.1;
-mutationPoints =    2; 
+chanceCrossover =   0.85;
+chanceMutation =    0.05;
+mutationPoints =    ceil(log2(nCameras)); 
 count =             0;
+
+
+
+bestSolution = zeros(nCameras, 3, maxGenerations);
+bestFitness = zeros(maxGenerations, 1);
 
 %% Function Core
 % Create the first generation
-newpopulation = generatePopulation(populationSize, lengthString);
-newfitness = zeroes(1, populationSize);
+
+newpopulation = generatePopulation(populationSize, getGeneLength(yMax, xMax, nCameras));
+newsolution = zeros(nCameras, 3, nCameras);
+newfitness = zeros(1, populationSize);
 for p=1:populationSize,
-        %Generate Solution Matrix
+        newsolution(:,:,p) = bin2CameraList(newpopulation(p,:));
+        newfitness(p) =  feval(func, clist, cmap, bmap, squeeze(newsolution(:,:,p)));
 end
 % GA Loop
 for i=1:maxGenerations,
@@ -54,12 +62,17 @@ for i=1:maxGenerations,
         end
     end
     
-    bestFitness(i) = min(newfitness);
-    bestSolution(i) = mean(newsolution(bestFitness(i)==newfitness));
+    [bestFitness(i), mI] = min(newfitness);
+    bestSolution(:, :, i) = newsolution(:,:,mI);
 end
     index = find(bestFitness == min(bestFitness(:)));
-    CamSoln = bestSolution(index);
-    CamSolnCost = bestFitness(i);
+    CamSoln = bestSolution(:, :, index(1));
+    CamSolnCost = bestFitness(index(1));
+    n = index(1);
+    
+    %Display Fitness Graph
+    set(gcf, 'color', 'w');
+    subplot(2,1,2); plot(bestFitness); title('Fitness');
 end
 
 % Other Functions
@@ -84,37 +97,42 @@ end
 function listCameras = bin2CameraList(binary)
     global xMax yMax nCameras;
     
-    listCameras = zeros(nCameras, 3);    
-    yBits   = ceil(log2(MaxHeight));
-    xBits   = ceil(log2(MaxWidth));
-    camBits = yBits + xBits + 1;
-    dirBits = 1;
-    curBit  = 1;
-    
-    for i=1:nCameras,
-        listCameras(i) = [bi2de(binary(curBit:curBit+yBits - 1)), bi2de(binary(curBit + yBits: curBit + yBits + xBits - 1)), binary(curBit + yBits + xBits)];
-        curBit = curBit + yBits + xBits + 1;
+    listCameras = zeros(nCameras, 3, 1);
+    ybits   = ceil(log2(yMax));
+    xbits   = ceil(log2(xMax));
+    i = 1;
+
+    for j=1:nCameras,
+        listCameras(j,1,1) = 1 + bi2de(binary(i:i+xbits-1));
+        i = i + xbits;
+        listCameras(j,2,1) = 1 + bi2de(binary(i:i+ybits-1));
+        i = i + ybits;
+        listCameras(j,3,1) = binary(i);
+        i = i + 1;
     end
 end
 
 function evolve(j)
     % Evolves the new generation
     global newsolution newpopulation newfitness fitness population solution func clist bmap cmap;
-    newsolution(j)=bin2CameraList(newpopulation(j,:));
-    newfitness(j)=feval(func, clist, cmap, bmap, newsolution(j));
+    a = bin2CameraList(newpopulation(j,:));
+    newsolution(:,:,j)=bin2CameraList(newpopulation(j,:));
+    newfitness(j)=feval(func, clist, cmap, bmap, squeeze(newsolution(:,:,j)));
     if newfitness(j) < fitness(j), % Min question
        population(j,:) = newpopulation(j,:);
-       solution(j) = newsolution(j);
+       solution(:,:,j) = newsolution(:,:,j);
     end
 end
 
-function mutated = mutate(a, msite)
+function x = mutate(a, mrate)
     % Mutate the binary string
-    nn = length(a); mutated=a;
-    for i=1:msite,
-        j=floor(rand*nn)+1;
-        mutated(j)=mod(a(j)+1,2);
+nn = length(a);
+x = a;
+for i = 1:nn,
+    if mrate > rand,
+        x(i) = mod(a(i) + 1, 2);
     end
+end
 end
 
 function [c,d] = genCrossover(a,b)
