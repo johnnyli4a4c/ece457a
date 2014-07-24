@@ -53,12 +53,8 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
         globalSolnMat = cell2mat(globalSoln(:,2));
         
 %         find value of best and worst
-        [best,index] = min(globalSolnMat);
+        [best,bestIdx] = min(globalSolnMat);
         worst = max(globalSolnMat);
-        
-        soln = globalSoln{index,1};
-        cost = globalSoln(index,2);
-        iteration = i;
         
         if (best == worst)
             convergence = convergence - 1;
@@ -67,21 +63,22 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
             end
         end
         
-%         find all indexes of best solutions
-        bestIdx = find(globalSolnMat == best);
+%         count number of best solutions
+        numBest = length(find(globalSolnMat == best));
 
         improveFactor = pheromone_deposit_scaling * length(bestIdx) * worst / best;
         
         for cam_k = 1:numCameras
             pheromoneMap{cam_k} = pheromoneMap{cam_k}.*pheromone_decay;
-            indices = [];
-            for best_k = bestIdx'
-                camPos = globalSoln{best_k,1}(cam_k,:);
-                indices = [indices; sub2ind(size(boundaryMap),camPos(1,2),camPos(1,1))+(camPos(1,3)-1)*numElements];
-            end
-            pheromoneMap{cam_k}(indices) = pheromoneMap{cam_k}(indices).*improveFactor;
+            camPos = globalSoln{bestIdx,1}(cam_k,:);
+            index = sub2ind(size(boundaryMap),camPos(1,2),camPos(1,1))+(camPos(1,3)-1)*numElements;
+            pheromoneMap{cam_k}(index) = pheromoneMap{cam_k}(index)+improveFactor;
             probabilityDistribution{cam_k} = cumsum(((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost)));
         end
         timing(i) = toc;
     end
+    soln = globalSoln{bestIdx,1};
+    cost = globalSoln(bestIdx,2);
+    iteration = i;
 end
+
