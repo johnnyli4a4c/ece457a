@@ -77,7 +77,7 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
             indices = [];
             for best_k = bestIdx'
                 camPos = globalSoln{best_k,1}(cam_k,:);
-                indices = [indices; sub2ind(size(boundaryMap),camPos(1,2),camPos(1,1))+(camPos(1,3)-1)*64];
+                indices = [indices; sub2ind(size(boundaryMap),camPos(1,2),camPos(1,1))+(camPos(1,3)-1)*numElements];
             end
             pheromoneMap{cam_k}(indices) = pheromoneMap{cam_k}(indices).*improveFactor;
             probabilityDistribution{cam_k} = cumsum(((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{cam_k}.^influence_pheromone).*(sensitivityVector.^influence_cost)));
