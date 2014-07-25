@@ -19,10 +19,11 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
     numCameras = size(cameras,1);
     
     sensitivityVector = repmat(sensitivityMap(boundaryMap(1:end)),1,2);    
-    pheromoneMap = cell(numCameras,1);
-    pheromoneMap(:) = {ones(1,numElements*2)*pheromone_initial};
-    probabilityDistribution = cell(numCameras,1);
-    probabilityDistribution(:) = {cumsum(((pheromoneMap{1}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{1}.^influence_pheromone).*(sensitivityVector.^influence_cost)))};
+    pheromoneMap = ones(numCameras,numElements*2)*pheromone_initial;
+    probabilityDistribution = zeros(numCameras,numElements*2);
+    for cam_k = 1:numCameras
+        probabilityDistribution(cam_k,:) = cumsum(((pheromoneMap(cam_k,:).^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap(cam_k,:).^influence_pheromone).*(sensitivityVector.^influence_cost)));
+    end
     
     timing = zeros(1,iterations);
     shouldStop = 0;
@@ -36,7 +37,7 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
             for cam_k = 1:numCameras
                 r = rand;
                 
-                idx = find(probabilityDistribution{cam_k} > r, 1);
+                idx = find(probabilityDistribution(cam_k,:) > r, 1);
                 
                 dir = 1;
                 if (idx > numElements)
@@ -69,19 +70,17 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
 
         improveFactor = pheromone_deposit_scaling * 1 * worst / best;
         
-        for pher_k = 1:numCameras
-            pheromoneMap{pher_k} = pheromoneMap{pher_k}.*pheromone_decay;
-        end
+        pheromoneMap = pheromoneMap.*pheromone_decay;
         for row = 1:size(reducedGlobalSoln,1)
             localSoln = reshape(reducedGlobalSoln(row,:),numCameras,3); 
             for cam_k = 1:numCameras                
                 camPos = localSoln(cam_k,:);
                 index = sub2ind(size(boundaryMap),camPos(1,2),camPos(1,1))+(camPos(1,3)-1)*numElements;
-                pheromoneMap{cam_k}(index) = pheromoneMap{cam_k}(index)+improveFactor;
+                pheromoneMap(cam_k,index) = pheromoneMap(cam_k,index)+improveFactor;
             end
         end
-        for pher_k = 1:numCameras
-            probabilityDistribution{pher_k} = cumsum(((pheromoneMap{pher_k}.^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap{pher_k}.^influence_pheromone).*(sensitivityVector.^influence_cost)));
+        for cam_k = 1:numCameras
+            probabilityDistribution(cam_k,:) = cumsum(((pheromoneMap(cam_k,:).^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap(cam_k,:).^influence_pheromone).*(sensitivityVector.^influence_cost)));
         end
         timing(i) = toc;
     end
