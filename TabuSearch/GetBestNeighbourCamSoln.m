@@ -2,7 +2,7 @@ function [BestNeighbourSoln BestNeighbourSolnCost TabuCameras] ...
                 = GetBestNeighbourCamSoln(CostCalcFn, SectionCosts, BoundaryMap, CamList, Soln, ... 
                 TabuCameras, TabuLength)
 
-% This function gets the neighbour of the given spanning tree 
+% This function gets the neighbour of a given camera placement oslution
 % with the lowest cost.
 %
 % Inputs:

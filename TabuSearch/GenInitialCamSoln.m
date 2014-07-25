@@ -31,7 +31,7 @@ for i = 1:CamCount
 end
 
 % Calculate the cost of the soln
-[CamSolnCost] = feval(CalcCostFn, CamList, SectionCosts, BoundaryMap, CamSoln);
+[CamSolnCost] = feval(CostCalcFn, CamList, SectionCosts, BoundaryMap, CamSoln);
 
 
 % Initialize the tabu list. The tabu list represents that set of cameras
