@@ -1,3 +1,4 @@
+addpath('../');
 load('simple-airport.mat')
 numVals = 20;
 numIterations = 100;

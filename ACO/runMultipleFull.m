@@ -1,4 +1,5 @@
-load('big-problem.mat')
+addpath('../');
+load('big-problem.mat');
 numVals = 20;
 numIterations = 100;
 soln = cell(numVals,1);
