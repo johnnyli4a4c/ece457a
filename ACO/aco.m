@@ -1,3 +1,4 @@
+% For the reduced size problem:
 % 1  9 17 25 33 41 49 57
 % 2 10 18 26 34 42 50 58
 % 3 11 19 27 35 43 51 59
@@ -10,8 +11,7 @@
 % A second matrix ranging from 65-128 to represent the vertical orientation
 
 function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, cameras, determineCostFn, numAnts, iterations, ...
-    pheromone_initial, pheromone_decay, pheromone_deposit_scaling, influence_pheromone, influence_cost, convergence)
-%     check boundaryMap = sensitivityMap
+    pheromone_initial, pheromone_decay, pheromone_deposit_scaling, influence_pheromone, influence_cost, overlap_probability, confidence, convergence)
 
     mapHeight = size(boundaryMap,1);
     mapWidth = size(boundaryMap,2);    
@@ -34,17 +34,36 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
         globalCost = zeros(numAnts, 1);
         for ant_k = 1:numAnts
             localSoln = zeros(numCameras,3);
+%             tempProb = probabilityDistribution;
+%             tempSens = sensitivityVector;
             for cam_k = 1:numCameras
                 r = rand;
                 
+%                 idx = find(tempProb(cam_k,:) > r, 1);
                 idx = find(probabilityDistribution(cam_k,:) > r, 1);
                 
-                dir = 1;
-                if (idx > numElements)
-                    dir = 2;
-                    idx = idx - numElements;
-                end
+                dir = floor(idx/(numElements+1))+1;
+                idx = idx - floor(idx/(numElements+1))*numElements;
                 [y,x] = ind2sub([mapHeight,mapWidth],idx);
+
+%                 camWidth = cameras(cam_k,dir);
+%                 camLength = cameras(cam_k,mod(dir,2)+1);
+%                 for camY = y:min(y+camLength-1,mapHeight)
+%                     for camX = x:min(x+camWidth-1,mapHeight)
+%                         if (boundaryMap(y,x) == boundaryMap(camY,camX))
+%                             shiftedX = max(1,camX - 1);
+%                             shiftedY = max(1,camY - 1);
+%                             tempIdx = sub2ind(size(boundaryMap),shiftedY,shiftedX);
+%                             tempSens(tempIdx) = tempSens(tempIdx) * overlap_probability;
+%                             tempIdx = tempIdx+numElements;
+%                             tempSens(tempIdx) = tempSens(tempIdx) * overlap_probability;
+%                         end
+%                     end
+%                 end
+%                 
+%                 if (cam_k < numCameras)
+%                     tempProb(cam_k+1,:) = cumsum(((pheromoneMap(cam_k+1,:).^influence_pheromone).*(tempSens.^influence_cost))/sum((pheromoneMap(cam_k+1,:).^influence_pheromone).*(tempSens.^influence_cost)));
+%                 end
 
                 localSoln(cam_k,:) = [x,y,dir];
             end
@@ -55,9 +74,10 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
         
 %         find value of best and worst
         [best,bestIdx] = min(globalCost);
-        worst = max(globalCost);
+        [worst,worstIdx] = max(globalCost);
+        best
         
-        if (best == worst)
+        if(sum(globalCost==best) / length(globalCost) > confidence)
             shouldStop = shouldStop + 1;
             if (shouldStop == convergence)
                 break;
@@ -70,7 +90,7 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
 
         improveFactor = pheromone_deposit_scaling * 1 * worst / best;
         
-        pheromoneMap = pheromoneMap.*pheromone_decay;
+        pheromoneMap = pheromoneMap.*(1-pheromone_decay);
         for row = 1:size(reducedGlobalSoln,1)
             localSoln = reshape(reducedGlobalSoln(row,:),numCameras,3); 
             for cam_k = 1:numCameras                
