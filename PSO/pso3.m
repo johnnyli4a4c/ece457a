@@ -1,5 +1,5 @@
 function [ Soln, Value ] = pso2( iterations )
-    iterations = 100;
+    iterations = 10;
     %Could be parameters instead so you can pass in maps and stuff
     %-------------------------------------------------------------------------------------------------
     %%{
@@ -103,7 +103,12 @@ function [ Soln, Value ] = pso2( iterations )
    c2 = 1.4944;
    inertia = 0;
    
-   numParticles = 125 * numCameras; %4 particles with 5 cameras each in different orientation
+   numParticles = 2; %4 particles with 5 cameras each in different orientation
+
+   %Test Code
+   %==========================================================================
+   
+   %==========================================================================
    
    %initializing all the particles
    %each particle contains 5 cameras
@@ -122,16 +127,17 @@ function [ Soln, Value ] = pso2( iterations )
             particle(i).pby(j) = particle(i).ypos(j);
         end
    end
+   for i = 1:2
+        disp(particle(i));
+    end
    
    %5 gbests so that each camera in each particle can move towards the global best
    for i = 1:numCameras
        gbest(i) = struct('x', 1, 'y', 1, 'dir', 1);
    end
    
-   
    %loop through and do however many iterations are needed based on input
    for i = 1:iterations
-       time1 = cputime;
        %loop through particles to determin the objective function
        for j = 1:numParticles
            val1 = findSoln(Cameras, SectionCosts, BoundaryMap, particle(j));
@@ -180,15 +186,15 @@ function [ Soln, Value ] = pso2( iterations )
                if(particle(i).xpos(j) >= xSize + 1)
                    particle(i).xpos(j) = xSize;
                end
-               if(particle(i).ypos(j) >= ySize + 1)
+               if(particle(i).ypos(j) >= ySize + 1 )
                    particle(i).ypos(j) = ySize;
                end
             end
        end
-       time2 = cputime;
-       disp((time2 - time1))
-   end
-   
+        for i = 1:2
+            disp(particle(i));
+        end
+    end
 end
 
 function [ value ] = findSoln( Cameras, SectionCosts, BoundaryMap, Particle )
