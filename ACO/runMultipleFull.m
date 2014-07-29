@@ -1,6 +1,6 @@
 addpath('../');
 load('big-problem.mat');
-numVals = 20;
+numVals = 10;
 numIterations = 100;
 soln = cell(numVals,1);
 cost = zeros(numVals,1);

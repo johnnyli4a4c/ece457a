@@ -66,7 +66,7 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
     shouldStop = 0;
 
     for i = 1:iterations % or converged
-        tic
+        startTime = cputime;
 %         each row corresponds to a solution provided by an ant, it is flattened and can be made back into a matrix by doing reshape(row, numCameras, 3)
         globalSoln = zeros(numAnts, 3 * numCameras);
         globalCost = zeros(numAnts, 1);
@@ -124,7 +124,8 @@ function [soln, cost, iteration, timing] = aco(boundaryMap, sensitivityMap, came
         for cam_k = 1:numCameras
             probabilityDistribution(cam_k,:) = cumsum(((pheromoneMap(cam_k,:).^influence_pheromone).*(sensitivityVector.^influence_cost))/sum((pheromoneMap(cam_k,:).^influence_pheromone).*(sensitivityVector.^influence_cost)));
         end
-        timing(i) = toc;
+        endTime = cputime;
+        timing(i) = endTime - startTime;
     end
     soln = reshape(globalSoln(bestIdx,:),numCameras,3);
     cost = globalCost(bestIdx);
