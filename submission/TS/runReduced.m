@@ -1,3 +1,6 @@
-addpath('../');
+addpath('../')
 load('../reducedProblem.mat');
-[soln,cost,i,timing] = aco(map,sens,cam,@DetermineCost,500,100,1,0.3,1.2,1,1,0.95,25);
+fprintf('Running Tabu Search for 50 iterations\n');
+Iterations = 50;
+TabuListLength = 3;
+[BestSoln, BestSolnCost] = TabuCamSearch(sens,map,cam,TabuListLength,Iterations,@GenInitialCamSoln,@GetBestNeighbourCamSoln,@DetermineCost)
