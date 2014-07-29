@@ -1,5 +1,5 @@
 function [ CSoln, CSolnCost, n ] = BetterGA( ...
-    CostFunc, Cameras, SectionCosts, BoundaryMap, MaxGens)
+    CostFunc, Cameras, SectionCosts, BoundaryMap, MaxGens, rateElite, rateMutate)
 global pop popa popb;
 global sol;
 global fit;
@@ -15,20 +15,24 @@ bmap = BoundaryMap;
 nCameras = size(Cameras, 1);
 
 % Genetic Algorithm Variables
-popSize = nCameras;
+popSize = nCameras * 2;
 rateElite = 0.2;
 sizeElite = ceil(popSize * rateElite);
 nCrossovers = floor((popSize - sizeElite) /2);
 rateMutate = 0.05;
-%nMutate = ceil(log2(nCameras));
-nMutate = nCameras;
+nMutate = ceil(log2(nCameras));
 ybits = ceil(log2(yMax));
 xbits = ceil(log2(xMax));
 cbits = ybits + xbits + 1;
 nbits = cbits * nCameras;
 
+tSize = sizeElite + 2 * nCrossovers;
 if popSize ~= sizeElite + 2 * nCrossovers,
-    error ('redo calculation');
+    if (tSize > popSize)
+        sizeElite - 1;
+    else
+        sizeElite + 1;
+    end
 end
 
 % Recording Variables
@@ -38,7 +42,8 @@ bestSolution = zeros(nCameras, 3, MaxGens);
 %% Function Core
 %   First Generation
 pop = genPop(popSize, nbits);
-fit = inf(1,
+fit = inf(1,popSize);
+sol = zeros(nCameras, 3, popSize);
 for a = 1 :popSize,
     [sol(:,:,a) fit(a)] = decodeEval(pop(a, :));
 end

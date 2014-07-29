@@ -1,8 +1,0 @@
-function [ table, xbits, ybits ] = convertToTable( x , y, cameras, binary )
-
-table = zeros (cameras , 3, 2);
-xbits = ceil(log2(x));
-ybits = ceil(log2(y));
-
-
-end

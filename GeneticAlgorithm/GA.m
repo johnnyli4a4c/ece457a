@@ -1,5 +1,5 @@
-function [ CSoln, CSolnCost, n ] = BetterGA( ...
-    CostFunc, Cameras, SectionCosts, BoundaryMap, MaxGens, rateElite, rateMutate)
+function [ CSoln, CSolnCost ] = GA( ...
+    CostFunc, Cameras, SectionCosts, BoundaryMap, MaxGens)
 global pop popa popb;
 global sol;
 global fit;
@@ -15,12 +15,11 @@ bmap = BoundaryMap;
 nCameras = size(Cameras, 1);
 
 % Genetic Algorithm Variables
-popSize = nCameras * 2;
-%rateElite = 0.2;
+popSize = nCameras * 10;
+rateElite = 0.2;
 sizeElite = ceil(popSize * rateElite);
 nCrossovers = floor((popSize - sizeElite) /2);
-%rateMutate = 0.05;
-%nMutate = ceil(log2(nCameras));
+rateMutate = 0.05;
 nMutate = nCameras;
 ybits = ceil(log2(yMax));
 xbits = ceil(log2(xMax));
@@ -30,9 +29,9 @@ nbits = cbits * nCameras;
 tSize = sizeElite + 2 * nCrossovers;
 if popSize ~= sizeElite + 2 * nCrossovers,
     if (tSize > popSize)
-        sizeElite - 1;
+        sizeElite = sizeElite - 1;
     else
-        sizeElite + 1;
+        sizeElite = sizeElite + 1;
     end
 end
 
@@ -43,10 +42,11 @@ bestSolution = zeros(nCameras, 3, MaxGens);
 %% Function Core
 %   First Generation
 pop = genPop(popSize, nbits);
+popb = zeros(sizeElite, nbits); 
 fit = inf(1,popSize);
 sol = zeros(nCameras, 3, popSize);
 for a = 1 :popSize,
-    [sol(:,:,a) fit(a)] = decodeEval(pop(a, :));
+    [sol(:,:,a), fit(a)] = decodeEval(pop(a, :));
 end
 [fit, ix] = sort(fit);
 pop = pop(ix, :);
@@ -67,11 +67,9 @@ for i = 1:MaxGens,
     
     % Mutation
     for j = 1:nCrossovers,
-        %if rateMutate > rand,
-        %popb(j,:) = mutate(popb(j,:), nMutate);
-        %end
-        
-        popb(j,:) = xmutate(popb(j,:), rateMutate);
+        if rateMutate > rand,
+        popb(j,:) = mutate(popb(j,:), nMutate);
+        end
     end
     
     % Update population
@@ -120,27 +118,10 @@ fit = feval(func, clist, scost, bmap, sol);
 end
 
 function [c,d] = genCrossover(a,b)
-%{
 nn = length(a) - 1;
 crossPoint = floor (nn * rand) + 1;
 c = [a(1:crossPoint) b(crossPoint + 1:end)];
 d = [b(1:crossPoint) a(crossPoint + 1:end)];
-%}
-
-%Camera Wise Crossover
-global cbits nCameras;
-c = a(1:cbits);
-d = b(1:cbits);
-i = 1 + cbits;
-for k= 2:nCameras,
-    if rand > 0.5,
-        c = [c a(i:i+cbits -1)];
-        d = [d b(i:i+cbits -1)];
-    else,
-        d = [d a(i:i+cbits -1)];
-        c = [c b(i:i+cbits -1)];
-    end
-end
 end
 
 function mutated = mutate(a, msite)
@@ -149,15 +130,5 @@ nn = length(a); mutated=a;
 for i=1:msite,
     j=floor(rand*nn)+1;
     mutated(j)=mod(a(j)+1,2);
-end
-end
-
-function x = xmutate(a , mrate)
-nn = length(a);
-x = a;
-for i = 1:nn,
-    if mrate > rand,
-        x(i) = mod(a(i) + 1, 2);
-    end
 end
 end
