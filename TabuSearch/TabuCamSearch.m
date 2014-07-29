@@ -1,4 +1,4 @@
-function  [BestSoln, BestSolnCost, iterationCount] = TabuCamSearch( ...
+function  [BestSoln, BestSolnCost] = TabuCamSearch( ...
                 SectionCosts, BoundaryMap, CamList, TabuLength, NumIterations, ...      
                 GenInitialSolnFn, GetBestNeighbourSolnFn, CostCalcFn)
 
@@ -29,17 +29,14 @@ clockStart = clock;
 BestSoln = Soln;
 BestSolnCost = SolnCost;
 
-iterationCount = 0;
 convergenceCount = 0;
 
-%while convergenceCount < 25
 for nIt = 1 : NumIterations
     % Get the best solution in the neighbourhood of the current solution
     % avoiding Tabu moves
     [Soln SolnCost TabuList] = feval(GetBestNeighbourSolnFn, CostCalcFn, SectionCosts, ...
                                 BoundaryMap, CamList, Soln, TabuList, TabuLength);
             
-    iterationCount = iterationCount+1;
     OldBestCost = BestSolnCost;
                             
     % Update the best solution
@@ -61,9 +58,10 @@ for nIt = 1 : NumIterations
         convergenceCount = 0;
         
         %if our solution is improving try to intensify search
-        %by decreasing Tabu length
-        if TabuLength > 2;
-            TabuLength = TabuLength - 1;
+        %by decreasing Tabu length. Intensify faster than diversifying
+        TabuLength = TabuLength - 2;
+        if TabuLength < 1
+            TabuLength = 1;
         end
     end
 end
@@ -71,6 +69,5 @@ end
 finishTime = cputime;
 clockFinish = clock;
 
-fprintf('iterations: %g\n', iterationCount);
 fprintf('cputime: %g\n', finishTime - startTime);
 fprintf('clock: %g\n', etime(clockFinish,clockStart));
