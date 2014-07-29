@@ -1,3 +1,4 @@
 addpath('../');
 load('../reducedProblem.mat');
-[soln,cost,i,timing] = aco(map,sens,cam,@DetermineCost,500,100,1,0.3,1.2,1,1,0.95,25);
+fprintf('Running Genetic Algorithm for maximum 300 generations\n');
+[BestSoln, BestSolnCost] = GA(@DetermineCost, cam, sens, map, 300);
