@@ -1,8 +1,7 @@
-function [ Soln, Value ] = pso2( iterations )
-    iterations = 100;
+function [ Soln, Value ] = pso2( iterations, Cameras, BoundaryMap, SectionCosts )
     %Could be parameters instead so you can pass in maps and stuff
     %-------------------------------------------------------------------------------------------------
-    %%{
+    %{
     Cameras = [ 2 4;
                 3 5; 
                 2 6; 
@@ -43,14 +42,14 @@ function [ Soln, Value ] = pso2( iterations )
                     6,7;
                 ];
     %}
-    [numCameras, y] = size(Cameras);
     
-    SectionCosts = [2 1 1 1];
+    
+    %SectionCosts = [2 1 1 1];
     %SectionCosts = [5,3,1,3,1,4,2,4,1,3,2];
     
     
 
-    %%{
+    %{
     BoundaryMap = [1 1 1 1 1 1 1 1;
                    1 1 1 1 1 1 1 1;
                    1 1 1 1 1 1 1 1;
@@ -96,7 +95,8 @@ function [ Soln, Value ] = pso2( iterations )
             11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11,11;
         ];
         %}
-        [xSize,ySize] = size(BoundaryMap);
+    [numCameras, y] = size(Cameras);
+    [xSize,ySize] = size(BoundaryMap);
    %-------------------------------------------------------------------------------------------------
    %default stuff
    c1 = 1.4944;
@@ -186,7 +186,7 @@ function [ Soln, Value ] = pso2( iterations )
             end
        end
        time2 = cputime;
-       disp((time2 - time1))
+       %disp((time2 - time1))
    end
    
 end
